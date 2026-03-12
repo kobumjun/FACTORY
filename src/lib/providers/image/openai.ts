@@ -8,10 +8,14 @@ export function createOpenAIImage(): ImageProvider {
   const client = new OpenAI({ apiKey });
 
   return {
-    async generateImage(prompt: string, options?: { size?: string }) {
+    async generateImage(prompt: string, options?: { size?: string; negativePrompt?: string }) {
+      let fullPrompt = prompt;
+      if (options?.negativePrompt?.trim()) {
+        fullPrompt = `${prompt}\n\nAvoid: ${options.negativePrompt.trim()}`;
+      }
       const res = await client.images.generate({
         model: 'dall-e-3',
-        prompt,
+        prompt: fullPrompt,
         n: 1,
         size: (options?.size ?? '768x1344') === '768x1344' ? '1024x1792' : (options?.size as '1024x1024' | '1024x1792'), // 기본 768x1344, DALL-E는 1024x1792로 매핑
         response_format: 'url',

@@ -10,9 +10,28 @@ export function createStabilityImage(): ImageProvider {
   const engine = process.env.STABILITY_ENGINE ?? DEFAULT_ENGINE;
 
   return {
-    async generateImage(prompt: string, options?: { size?: string }) {
+    async generateImage(prompt: string, options?: { size?: string; negativePrompt?: string; stylePreset?: string }) {
       const size = options?.size ?? '768x1344';
       const [width, height] = size.split('x').map(Number);
+
+      const textPrompts: Array<{ text: string; weight?: number }> = [{ text: prompt, weight: 1 }];
+      if (options?.negativePrompt?.trim()) {
+        textPrompts.push({ text: options.negativePrompt.trim(), weight: -1 });
+      }
+
+      const body: Record<string, unknown> = {
+        text_prompts: textPrompts,
+        cfg_scale: 7,
+        height: height || 1344,
+        width: width || 768,
+        samples: 1,
+        steps: 30,
+      };
+
+      const stylePreset = options?.stylePreset ?? 'digital-art';
+      if (stylePreset) {
+        body.style_preset = stylePreset;
+      }
 
       const res = await fetch(
         `${STABILITY_BASE}/v1/generation/${engine}/text-to-image`,
@@ -23,15 +42,7 @@ export function createStabilityImage(): ImageProvider {
             Accept: 'application/json',
             Authorization: `Bearer ${apiKey}`,
           },
-          body: JSON.stringify({
-            text_prompts: [{ text: prompt }],
-            cfg_scale: 7,
-            height: height || 1344,
-            width: width || 768,
-            samples: 1,
-            steps: 30,
-            style_preset: 'photographic',
-          }),
+          body: JSON.stringify(body),
         }
       );
 

@@ -8,12 +8,68 @@ import { useCredits } from '@/lib/services/credits';
 import { CREDITS } from '@/lib/constants';
 import type { ProjectTemplate } from '@/types/database';
 
-const IMAGE_STYLE_BASE = 'Vertical 9:16, cartoon, meme-like, stylish modern animation, clean digital illustration, cinematic anime-like framing. No photorealistic, no stock photo feel. No text overlay.';
+const NEGATIVE_PROMPT = 'photorealistic, realism, photography, DSLR, camera lens, cinematic photo lighting, realistic skin texture, pores, hyperrealism, 3d render, octane render, blender render, ultra detailed skin, realistic human face, lifelike photo, modern digital painting realism';
 
-const IMAGE_STYLE_BY_TEMPLATE: Record<ProjectTemplate, string> = {
-  meme: `${IMAGE_STYLE_BASE} Exaggerated expression, absurd or punchy visual setup, fast readability, bold visual contrast, humorous cartoon energy, meme reel style.`,
-  story: `${IMAGE_STYLE_BASE} Calm cinematic composition, modern anime illustration, emotional silence, introspective atmosphere, stylish urban or minimal background, soft but intentional lighting.`,
-};
+const STORY_STYLE_BLOCK = `STYLE: 1990s western animated series (classic superhero animation style)
+
+Create a 2D cel-animated illustration that looks like a frame from a dark 1990s animated TV series.
+
+VISUAL STYLE RULES (VERY IMPORTANT):
+- 2D cel animation
+- thick black outlines
+- flat colors
+- strong dramatic shadows
+- noir lighting
+- stylized cartoon characters
+- simplified facial features
+- bold shapes
+- minimal texture
+- high contrast lighting
+- animated series frame composition
+- hand-drawn cartoon look
+- western superhero animated show style
+
+ABSOLUTE STYLE REQUIREMENTS:
+- must look like traditional animation
+- must look like a cartoon frame
+- must NOT look like a photo
+- must NOT look realistic`;
+
+const MEME_STYLE_BLOCK = `STYLE: Exaggerated 2D cartoon meme frame
+
+Create a 2D cel-animated illustration for a short meme reel.
+
+VISUAL STYLE RULES (VERY IMPORTANT):
+- 2D cartoon only
+- exaggerated cartoon
+- punchy meme frame
+- bold facial expression
+- comic-like exaggeration
+- thick outlines, flat colors
+- fast readability, bold contrast
+- humorous cartoon energy
+- must look like a cartoon
+- must NOT look like a photo
+- must NOT look realistic`;
+
+const COMPOSITION_BLOCK = 'COMPOSITION: cinematic animated series framing, dramatic lighting, stylized cartoon environment. Vertical 9:16. No text overlay.';
+
+function buildImagePrompt(template: ProjectTemplate, sceneDescription: string): { prompt: string; negativePrompt: string; stylePreset: string } {
+  const styleBlock = template === 'story' ? STORY_STYLE_BLOCK : MEME_STYLE_BLOCK;
+
+  const prompt = `${styleBlock}
+
+SCENE DESCRIPTION:
+${sceneDescription}
+
+${COMPOSITION_BLOCK}`;
+
+  return {
+    prompt,
+    negativePrompt: NEGATIVE_PROMPT,
+    stylePreset: 'digital-art',
+  };
+}
 
 export async function generateImages(projectId: string, options?: { bundled?: boolean }) {
   const supabase = await createClient();
@@ -54,16 +110,18 @@ export async function generateImages(projectId: string, options?: { bundled?: bo
   }).eq('project_id', projectId).eq('step', 'images');
 
   const template = (project.template || 'story') as ProjectTemplate;
-  const styleSuffix = IMAGE_STYLE_BY_TEMPLATE[template];
-
   const imageProvider = getImageProvider();
   const imageUrls: string[] = [];
 
   try {
     for (let i = 0; i < scenes.length; i++) {
-      const visual = visualDirections[i] || scenes[i];
-      const prompt = `Scene ${i + 1}: ${visual}. Style: ${styleSuffix}`;
-      const url = await imageProvider.generateImage(prompt);
+      const sceneDesc = (typeof visualDirections[i] === 'string' ? visualDirections[i] : scenes[i]) || '';
+      const { prompt, negativePrompt, stylePreset } = buildImagePrompt(template, sceneDesc);
+
+      const url = await imageProvider.generateImage(prompt, {
+        negativePrompt,
+        stylePreset,
+      });
       imageUrls.push(url);
     }
 

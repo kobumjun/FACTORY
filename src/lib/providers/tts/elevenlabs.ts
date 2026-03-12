@@ -1,8 +1,8 @@
 import type { TTSProvider } from './types';
 
 const ELEVENLABS_BASE = 'https://api.elevenlabs.io';
-const DEFAULT_VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; // Rachel
-const DEFAULT_MODEL = 'eleven_multilingual_v2';
+const DEFAULT_VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; // Rachel (English)
+const DEFAULT_MODEL = 'eleven_multilingual_v2'; // supports English
 
 export function createElevenLabsTTS(): TTSProvider {
   const apiKey = process.env.ELEVENLABS_API_KEY;

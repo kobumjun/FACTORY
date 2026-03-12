@@ -58,24 +58,30 @@ export async function generateScript(projectId: string, options?: { bundled?: bo
 
 톤: ${reelTone}
 
+LANGUAGE (MANDATORY):
+- Generate the narration in English only.
+- Do not generate Korean text.
+- Ensure the narration is written entirely in English.
+- concept, hook, mood, ending, and narration must all be in English.
+
 아래 형식의 JSON만 출력하세요 (다른 설명 없이):
 {
-  "concept": "전체 릴스 컨셉 한 문장",
-  "hook": "첫 3초를 사로잡는 훅 문구",
-  "mood": "전체 분위기/페이싱 (예: 빠른 컷, 여운, 긴장)",
-  "ending": "마무리 비트/여운",
+  "concept": "Overall reel concept in one sentence (English)",
+  "hook": "Hook for first 3 seconds (English)",
+  "mood": "Overall mood/pacing (English)",
+  "ending": "Ending beat (English)",
   "scenes": [
     {
-      "narration": "이 장면에서 나오는 나레이션 문장",
-      "visualDirection": "subject(주체), expression(표정), composition(구도), framing(프레이밍), background(배경), lighting(조명), style(스타일 태그), emotionalTone(감정 톤)"
+      "narration": "Narration line for TTS (English only)",
+      "visualDirection": "subject, expression, composition, framing, background, lighting, style tag, emotional tone (English)"
     }
   ]
 }
 
 요구사항:
 - scenes 개수는 3~5개
-- narration은 TTS로 읽힐 문장 (짧고 임팩트 있게)
-- visualDirection은 각 장면의 시각 연출을 구체적으로 (이미지 생성용)`;
+- narration은 TTS로 읽힐 문장 (짧고 임팩트 있게, 반드시 영어)
+- visualDirection은 각 장면의 시각 연출을 구체적으로 (이미지 생성용, 영어). photorealistic, realistic, cinematic photo, lifelike 등 실사/사진 관련 단어는 사용하지 말고, 2D cartoon/animation 스타일 용어만 사용하세요.`;
 
   const start = Date.now();
   let raw = '';

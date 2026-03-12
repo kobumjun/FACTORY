@@ -11,7 +11,7 @@ export function createOpenAITTS(): TTSProvider {
     async generateSpeech(text: string, options?: { voice?: string }) {
       const res = await client.audio.speech.create({
         model: 'tts-1-hd',
-        voice: (options?.voice as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer') || 'alloy',
+        voice: (options?.voice as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer') || 'alloy', // English voices
         input: text,
       });
       const arrayBuffer = await res.arrayBuffer();
