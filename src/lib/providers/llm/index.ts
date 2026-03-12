@@ -5,11 +5,13 @@ let _instance: LLMProvider | null = null;
 
 export function getLLMProvider(): LLMProvider {
   if (!_instance) {
-    const provider = process.env.LLM_PROVIDER || 'openai';
-    if (provider === 'openai') {
+    const llmProvider = process.env.LLM_PROVIDER ?? 'openai';
+    switch (llmProvider) {
+    case 'openai':
       _instance = createOpenAILLM();
-    } else {
-      throw new Error(`Unknown LLM provider: ${provider}`);
+      break;
+    default:
+      throw new Error(`Unknown LLM provider: ${llmProvider}`);
     }
   }
   return _instance;
