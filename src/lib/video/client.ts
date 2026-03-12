@@ -1,6 +1,7 @@
 'use client';
 
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
 import { createClient } from '@/lib/supabase/client';
 import { MAX_VIDEO_SCENES } from '@/lib/constants';
 
@@ -8,14 +9,14 @@ type RenderResult =
   | { data: { videoUrl: string } }
   | { error: string };
 
-const ffmpeg = createFFmpeg({ log: false });
-let ffmpegLoaded = false;
+let ffmpegInstance: FFmpeg | null = null;
 
-async function ensureFFmpegLoaded() {
-  if (!ffmpegLoaded) {
-    await ffmpeg.load();
-    ffmpegLoaded = true;
+async function ensureFFmpegLoaded(): Promise<FFmpeg> {
+  if (!ffmpegInstance) {
+    ffmpegInstance = new FFmpeg();
+    await ffmpegInstance.load();
   }
+  return ffmpegInstance;
 }
 
 export async function renderVideoInBrowser(projectId: string): Promise<RenderResult> {
@@ -53,14 +54,14 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
     const audioUrlsSliced = audioUrls.slice(0, capped);
 
     // 2) ffmpeg.wasm 로드
-    await ensureFFmpegLoaded();
+    const ffmpeg = await ensureFFmpegLoaded();
 
     // 3) 입력 파일을 가상 FS에 기록
     for (let i = 0; i < imageUrlsSliced.length; i++) {
       const imgName = `img-${i}.png`;
       const audName = `aud-${i}.mp3`;
-      ffmpeg.FS('writeFile', imgName, await fetchFile(imageUrlsSliced[i]));
-      ffmpeg.FS('writeFile', audName, await fetchFile(audioUrlsSliced[i]));
+      await ffmpeg.writeFile(imgName, await fetchFile(imageUrlsSliced[i]));
+      await ffmpeg.writeFile(audName, await fetchFile(audioUrlsSliced[i]));
     }
 
     const n = imageUrlsSliced.length;
@@ -105,10 +106,10 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
       outputName,
     ];
 
-    await ffmpeg.run(...args);
+    await ffmpeg.exec(args);
 
-    const data = ffmpeg.FS('readFile', outputName);
-    const blob = new Blob([data.buffer], { type: 'video/mp4' });
+    const data = await ffmpeg.readFile(outputName);
+    const blob = new Blob([data], { type: 'video/mp4' });
 
     // 4) Supabase Storage 업로드
     const filePath = `${projectId}/videos/final.mp4`;
