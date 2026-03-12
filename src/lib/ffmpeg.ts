@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import ffmpegPath from 'ffmpeg-static';
 
 export interface RenderOptions {
   images: string[];
@@ -8,7 +9,7 @@ export interface RenderOptions {
 
 /**
  * Renders vertical shorts: pairs (image, audio) concatenated.
- * Requires ffmpeg installed.
+ * Uses ffmpeg-static binary (Vercel/serverless compatible).
  */
 export async function renderVideo(options: RenderOptions): Promise<string> {
   const { images, audios, outputPath } = options;
@@ -43,8 +44,9 @@ export async function renderVideo(options: RenderOptions): Promise<string> {
     '-shortest', '-y', outputPath,
   ];
 
+  const bin = ffmpegPath ?? 'ffmpeg';
   return new Promise((resolve, reject) => {
-    const proc = spawn('ffmpeg', args);
+    const proc = spawn(bin, args);
     let stderr = '';
     proc.stderr.on('data', (d) => { stderr += d.toString(); });
     proc.on('close', (code) => {
