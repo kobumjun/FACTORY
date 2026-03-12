@@ -36,8 +36,9 @@ export async function splitScenes(projectId: string, _options?: { bundled?: bool
     .eq('step', 'script')
     .single();
 
-  const scriptRaw = (scriptStep?.output_data as { script?: string })?.script;
-  if (!scriptRaw) return { error: 'Generate a script first.' };
+  const scriptRaw = (scriptStep?.output_data as { script?: unknown })?.script;
+  const scriptStr = typeof scriptRaw === 'string' ? scriptRaw : '';
+  if (!scriptStr) return { error: 'Generate a script first.' };
 
   await admin.from('project_steps').update({
     status: 'processing',
@@ -45,17 +46,19 @@ export async function splitScenes(projectId: string, _options?: { bundled?: bool
   }).eq('project_id', projectId).eq('step', 'scenes');
 
   try {
-    const cleaned = scriptRaw.replace(/```json\n?|\n?```/g, '').trim();
+    const cleaned = scriptStr.replace(/```json\n?|\n?```/g, '').trim();
     const comp = JSON.parse(cleaned) as ReelComposition;
     const rawScenes = Array.isArray(comp.scenes) ? comp.scenes : [];
 
     const scenes: string[] = [];
     const visualDirections: string[] = [];
 
+    const safeStr = (v: unknown): string => (typeof v === 'string' ? v : '').trim();
+
     for (let i = 0; i < Math.min(rawScenes.length, MAX_SCENES); i++) {
       const s = rawScenes[i];
-      const narr = (s?.narration || '').trim();
-      const visual = (s?.visualDirection || '').trim();
+      const narr = safeStr(s?.narration);
+      const visual = safeStr(s?.visualDirection);
       if (narr) {
         scenes.push(narr);
         visualDirections.push(visual || narr);
