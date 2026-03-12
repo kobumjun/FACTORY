@@ -1,10 +1,26 @@
 import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import ffmpegPath from 'ffmpeg-static';
 
 export interface RenderOptions {
   images: string[];
   audios: string[];
   outputPath: string;
+}
+
+/**
+ * Resolves ffmpeg binary path and ensures it exists (Vercel serverless compatible).
+ * Requires serverExternalPackages: ['ffmpeg-static'] in next.config.
+ */
+function getFfmpegBinary(): string {
+  const bin = ffmpegPath ?? 'ffmpeg';
+  const resolvedPath = path.resolve(bin);
+  if (!fs.existsSync(resolvedPath)) {
+    console.error('FFMPEG binary not found:', resolvedPath);
+    throw new Error('FFMPEG binary missing in runtime. Ensure serverExternalPackages includes "ffmpeg-static".');
+  }
+  return resolvedPath;
 }
 
 /**
@@ -44,7 +60,7 @@ export async function renderVideo(options: RenderOptions): Promise<string> {
     '-shortest', '-y', outputPath,
   ];
 
-  const bin = ffmpegPath ?? 'ffmpeg';
+  const bin = getFfmpegBinary();
   return new Promise((resolve, reject) => {
     const proc = spawn(bin, args);
     let stderr = '';
