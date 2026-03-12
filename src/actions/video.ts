@@ -70,13 +70,15 @@ export async function renderProjectVideo(projectId: string, options?: { bundled?
       const imgPath = path.join(tmpDir, `vid-${projectId}-img-${i}.png`);
       const imgRes = await fetch(imageUrlsSliced[i]);
       if (!imgRes.body) throw new Error('No image body');
-      await pipeline(Readable.fromWeb(imgRes.body as globalThis.ReadableStream<Uint8Array>), createWriteStream(imgPath));
+      const imgBody = imgRes.body as any;
+      await pipeline(Readable.fromWeb(imgBody), createWriteStream(imgPath));
       imagePaths.push(imgPath);
 
       const audPath = path.join(tmpDir, `vid-${projectId}-aud-${i}.mp3`);
       const audRes = await fetch(audioUrlsSliced[i]);
       if (!audRes.body) throw new Error('No audio body');
-      await pipeline(Readable.fromWeb(audRes.body as globalThis.ReadableStream<Uint8Array>), createWriteStream(audPath));
+      const audBody = audRes.body as any;
+      await pipeline(Readable.fromWeb(audBody), createWriteStream(audPath));
       audioPaths.push(audPath);
     }
 
