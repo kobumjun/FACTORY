@@ -83,55 +83,41 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
     const n = imageUrlsSliced.length;
     const width = 720;
     const height = 1280;
+    const vf = `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`;
 
-    const inputs: string[] = [];
+    // 4) 장면별로 단순 -vf 한 번씩 실행 (filter_complex 멈춤 회피), 이후 concat
     for (let i = 0; i < n; i++) {
-      inputs.push('-loop', '1', '-i', `img-${i}.png`, '-i', `aud-${i}.mp3`);
+      const sceneOut = `scene-${i}.mp4`;
+      const args = [
+        '-threads', '1',
+        '-loop', '1', '-i', `img-${i}.png`, '-i', `aud-${i}.mp3`,
+        '-vf', vf,
+        '-c:v', 'libx264', '-c:a', 'aac', '-b:v', '1M',
+        '-shortest', '-y', sceneOut,
+      ];
+      console.log('[VideoClient] Start ffmpeg exec scene', i, { args });
+      await ffmpeg.exec(args);
+      console.log('[VideoClient] ffmpeg exec scene', i, 'finished');
     }
 
-    const scaleParts: string[] = [];
-    const concatParts: string[] = [];
-    for (let i = 0; i < n; i++) {
-      const vIn = i * 2;
-      const aIn = i * 2 + 1;
-      scaleParts.push(
-        `[${vIn}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2[v${i}]`,
-      );
-      concatParts.push(`[v${i}][${aIn}:a]`);
-    }
-    const filterComplex = `${scaleParts.join(';')};${concatParts.join('')}concat=n=${n}:v=1:a=1[outv][outa]`;
+    // 5) concat demuxer로 합치기 (재인코딩 없음)
+    const listLines = Array.from({ length: n }, (_, i) => `file 'scene-${i}.mp4'`);
+    const listContent = listLines.join('\n');
+    await ffmpeg.writeFile('list.txt', new TextEncoder().encode(listContent));
 
     const outputName = 'output.mp4';
-
-    const args = [
-      ...inputs,
-      '-filter_complex',
-      filterComplex,
-      '-map',
-      '[outv]',
-      '-map',
-      '[outa]',
-      '-c:v',
-      'libx264',
-      '-c:a',
-      'aac',
-      '-b:v',
-      '1M',
-      '-shortest',
-      '-y',
-      outputName,
-    ];
-
-    console.log('[VideoClient] Start ffmpeg exec', { args });
-    await ffmpeg.exec(args);
+    const concatArgs = ['-f', 'concat', '-safe', '0', '-i', 'list.txt', '-c', 'copy', '-y', outputName];
+    console.log('[VideoClient] Start ffmpeg concat', { concatArgs });
+    await ffmpeg.exec(concatArgs);
     console.log('[VideoClient] ffmpeg exec finished');
 
+    // 6) Blob 생성
     console.log('[VideoClient] Start blob creation');
     const data = (await ffmpeg.readFile(outputName)) as Uint8Array;
     const safeUint8 = new Uint8Array(data);
     const blob = new Blob([safeUint8], { type: 'video/mp4' });
 
-    // 4) Supabase Storage 업로드
+    // 7) Supabase Storage 업로드
     const filePath = `${projectId}/videos/final.mp4`;
     console.log('[VideoClient] Start Supabase upload', { filePath });
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -150,7 +136,7 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
     const videoUrl = publicUrlData.publicUrl;
     console.log('[VideoClient] Upload finished', { videoUrl });
 
-    // 5) project_steps에 video URL 저장 (DB 구조 유지)
+    // 8) project_steps에 video URL 저장 (DB 구조 유지)
     await supabase
       .from('project_steps')
       .update({
