@@ -35,6 +35,10 @@ export async function renderVideo(options: RenderOptions): Promise<string> {
   }
 
   const n = images.length;
+  const isVercel = process.env.VERCEL === '1';
+  const width = isVercel ? 720 : 1080;
+  const height = isVercel ? 1280 : 1920;
+
   const inputs: string[] = [];
   for (let i = 0; i < n; i++) {
     inputs.push('-loop', '1', '-i', images[i], '-i', audios[i]);
@@ -45,7 +49,7 @@ export async function renderVideo(options: RenderOptions): Promise<string> {
   for (let i = 0; i < n; i++) {
     const vIn = i * 2;
     const aIn = i * 2 + 1;
-    scaleParts.push(`[${vIn}:v]scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2[v${i}]`);
+    scaleParts.push(`[${vIn}:v]scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2[v${i}]`);
     concatParts.push(`[v${i}][${aIn}:a]`);
   }
   const filterComplex =
@@ -57,6 +61,7 @@ export async function renderVideo(options: RenderOptions): Promise<string> {
     '-filter_complex', filterComplex,
     '-map', '[outv]', '-map', '[outa]',
     '-c:v', 'libx264', '-c:a', 'aac',
+    ...(isVercel ? ['-b:v', '1M'] : []),
     '-shortest', '-y', outputPath,
   ];
 

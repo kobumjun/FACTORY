@@ -20,6 +20,9 @@ export const STEPS = [
 
 export type StepId = (typeof STEPS)[number];
 
+// 비디오 렌더링 시 메모리 한계를 위해 장면 수 상한 (Vercel serverless 대응)
+export const MAX_VIDEO_SCENES = 4;
+
 // 크레딧 비용
 export const CREDITS = {
   script: 1,

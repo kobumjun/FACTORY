@@ -4,9 +4,12 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { useCredits } from '@/lib/services/credits';
-import { CREDITS } from '@/lib/constants';
+import { CREDITS, MAX_VIDEO_SCENES } from '@/lib/constants';
 import { renderVideo } from '@/lib/ffmpeg';
-import { writeFile, readFile, unlink } from 'fs/promises';
+import { readFile, unlink } from 'fs/promises';
+import { createWriteStream } from 'fs';
+import { pipeline } from 'stream/promises';
+import { Readable } from 'stream';
 import path from 'path';
 import os from 'os';
 
@@ -39,6 +42,10 @@ export async function renderProjectVideo(projectId: string, options?: { bundled?
     return { error: 'Generate images and TTS first.' };
   }
 
+  const capped = Math.min(imageUrls.length, audioUrls.length, MAX_VIDEO_SCENES);
+  const imageUrlsSliced = imageUrls.slice(0, capped);
+  const audioUrlsSliced = audioUrls.slice(0, capped);
+
   const { hasShortCreditForProject } = await import('@/lib/services/credits');
   const skipCredit = options?.bundled ?? (await hasShortCreditForProject(user.id, projectId));
   if (!skipCredit) {
@@ -59,17 +66,17 @@ export async function renderProjectVideo(projectId: string, options?: { bundled?
   const audioPaths: string[] = [];
 
   try {
-    for (let i = 0; i < imageUrls.length; i++) {
-      const imgRes = await fetch(imageUrls[i]);
-      const imgBuf = Buffer.from(await imgRes.arrayBuffer());
+    for (let i = 0; i < imageUrlsSliced.length; i++) {
       const imgPath = path.join(tmpDir, `vid-${projectId}-img-${i}.png`);
-      await writeFile(imgPath, imgBuf);
+      const imgRes = await fetch(imageUrlsSliced[i]);
+      if (!imgRes.body) throw new Error('No image body');
+      await pipeline(Readable.fromWeb(imgRes.body as import('stream').web.ReadableStream), createWriteStream(imgPath));
       imagePaths.push(imgPath);
 
-      const audRes = await fetch(audioUrls[i]);
-      const audBuf = Buffer.from(await audRes.arrayBuffer());
       const audPath = path.join(tmpDir, `vid-${projectId}-aud-${i}.mp3`);
-      await writeFile(audPath, audBuf);
+      const audRes = await fetch(audioUrlsSliced[i]);
+      if (!audRes.body) throw new Error('No audio body');
+      await pipeline(Readable.fromWeb(audRes.body as import('stream').web.ReadableStream), createWriteStream(audPath));
       audioPaths.push(audPath);
     }
 
