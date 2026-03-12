@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { renderProjectVideo } from '@/actions/video';
+import { renderVideoInBrowser } from '@/lib/video/client';
 
 export default function StepVideo({
   projectId,
@@ -17,10 +17,10 @@ export default function StepVideo({
   async function handleRender() {
     setError(null);
     setLoading(true);
-    const res = await renderProjectVideo(projectId);
+    const res = await renderVideoInBrowser(projectId);
     setLoading(false);
-    if (res.error) setError(res.error);
-    else if (res.data) window.location.reload();
+    if ('error' in res && res.error) setError(res.error);
+    else if ('data' in res && res.data) window.location.reload();
   }
 
   if (videoUrl) {

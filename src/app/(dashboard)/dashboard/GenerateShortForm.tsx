@@ -6,7 +6,7 @@ import { generateScript } from '@/actions/script';
 import { splitScenes } from '@/actions/scenes';
 import { generateImages } from '@/actions/image';
 import { generateTTS } from '@/actions/tts';
-import { renderProjectVideo } from '@/actions/video';
+import { renderVideoInBrowser } from '@/lib/video/client';
 import { generateMetadata } from '@/actions/metadata';
 import type { TemplateId } from '@/lib/constants';
 
@@ -72,7 +72,7 @@ export default function GenerateShortForm({
           res = await generateTTS(projectId, { bundled: true });
           break;
         case 'video':
-          res = await renderProjectVideo(projectId, { bundled: true });
+          res = await renderVideoInBrowser(projectId);
           break;
         case 'metadata':
           res = await generateMetadata(projectId);
