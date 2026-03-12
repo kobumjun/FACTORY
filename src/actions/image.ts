@@ -7,7 +7,7 @@ import { getImageProvider } from '@/lib/providers/image';
 import { useCredits } from '@/lib/services/credits';
 import { CREDITS } from '@/lib/constants';
 
-export async function generateImages(projectId: string) {
+export async function generateImages(projectId: string, options?: { bundled?: boolean }) {
   const supabase = await createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -26,12 +26,16 @@ export async function generateImages(projectId: string) {
   const scenes = (scenesStep?.output_data as { scenes?: string[] })?.scenes;
   if (!Array.isArray(scenes) || scenes.length === 0) return { error: 'Split scenes first.' };
 
-  const totalCredits = scenes.length * CREDITS.imagePerScene;
-  const creditsOk = await useCredits(user.id, totalCredits, 'usage', {
-    id: projectId,
-    type: 'project_step',
-  });
-  if (!creditsOk.ok) return { error: creditsOk.error };
+  const { hasShortCreditForProject } = await import('@/lib/services/credits');
+  const skipCredit = options?.bundled ?? (await hasShortCreditForProject(user.id, projectId));
+  if (!skipCredit) {
+    const totalCredits = scenes.length * CREDITS.imagePerScene;
+    const creditsOk = await useCredits(user.id, totalCredits, 'usage', {
+      id: projectId,
+      type: 'project_step',
+    });
+    if (!creditsOk.ok) return { error: creditsOk.error };
+  }
 
   await admin.from('project_steps').update({
     status: 'processing',
@@ -60,7 +64,7 @@ export async function generateImages(projectId: string) {
     await admin.from('project_steps').update({
       status: 'completed',
       output_data: { imageUrls },
-      credits_used: totalCredits,
+      credits_used: skipCredit ? 0 : scenes.length * CREDITS.imagePerScene,
       updated_at: new Date().toISOString(),
     }).eq('project_id', projectId).eq('step', 'images');
 

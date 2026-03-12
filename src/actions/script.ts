@@ -16,7 +16,7 @@ const TEMPLATE_PROMPTS: Record<ProjectTemplate, string> = {
   health: '운동·건강 팁을 실용적으로',
 };
 
-export async function generateScript(projectId: string) {
+export async function generateScript(projectId: string, options?: { bundled?: boolean }) {
   const supabase = await createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -31,11 +31,15 @@ export async function generateScript(projectId: string) {
 
   if (!project) return { error: 'Project not found.' };
 
-  const creditsOk = await useCredits(user.id, CREDITS.script, 'usage', {
-    id: projectId,
-    type: 'project_step',
-  });
-  if (!creditsOk.ok) return { error: creditsOk.error };
+  const { hasShortCreditForProject } = await import('@/lib/services/credits');
+  const skipCredit = options?.bundled ?? (await hasShortCreditForProject(user.id, projectId));
+  if (!skipCredit) {
+    const creditsOk = await useCredits(user.id, CREDITS.script, 'usage', {
+      id: projectId,
+      type: 'project_step',
+    });
+    if (!creditsOk.ok) return { error: creditsOk.error };
+  }
 
   await admin.from('project_steps').update({
     status: 'processing',
@@ -69,14 +73,16 @@ export async function generateScript(projectId: string) {
       error_message: err,
       updated_at: new Date().toISOString(),
     }).eq('project_id', projectId).eq('step', 'script');
-    await admin.from('credit_transactions').insert({
-      user_id: user.id,
-      amount: CREDITS.script,
-      balance_after: 0, // will need to refund - for MVP we skip
-      type: 'refund',
-      reference_id: projectId,
-      reference_type: 'project_step',
-    });
+    if (!skipCredit) {
+      await admin.from('credit_transactions').insert({
+        user_id: user.id,
+        amount: CREDITS.script,
+        balance_after: 0,
+        type: 'refund',
+        reference_id: projectId,
+        reference_type: 'project_step',
+      });
+    }
     revalidatePath(`/dashboard/projects/${projectId}`);
     return { error: err };
   }
@@ -84,7 +90,7 @@ export async function generateScript(projectId: string) {
   await admin.from('project_steps').update({
     status: 'completed',
     output_data: { script },
-    credits_used: CREDITS.script,
+    credits_used: skipCredit ? 0 : CREDITS.script,
     updated_at: new Date().toISOString(),
   }).eq('project_id', projectId).eq('step', 'script');
 
@@ -94,7 +100,7 @@ export async function generateScript(projectId: string) {
     step: 'script',
     status: 'success',
     provider: process.env.LLM_PROVIDER || 'openai',
-    credits_used: CREDITS.script,
+    credits_used: skipCredit ? 0 : CREDITS.script,
     duration_ms: Date.now() - start,
   });
 

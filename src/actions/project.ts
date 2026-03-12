@@ -4,6 +4,47 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import type { ProjectTemplate } from '@/types/database';
 import { STEPS } from '@/lib/constants';
+import { useCredits } from '@/lib/services/credits';
+
+/** Creates project, deducts 1 credit for "short" generation, returns projectId. Steps run with bundled: true. */
+export async function startShortGeneration(topic: string, template: ProjectTemplate) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Please sign in.' };
+
+  const name = topic.slice(0, 50) || 'New short';
+  const { data: project, error } = await supabase
+    .from('projects')
+    .insert({
+      user_id: user.id,
+      name,
+      topic,
+      template,
+    })
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+
+  const steps = STEPS.map((step) => ({
+    project_id: project.id,
+    step,
+    status: 'pending' as const,
+  }));
+  await supabase.from('project_steps').insert(steps);
+
+  const creditsOk = await useCredits(user.id, 1, 'usage', {
+    id: project.id,
+    type: 'short',
+  });
+  if (!creditsOk.ok) {
+    await supabase.from('projects').delete().eq('id', project.id);
+    return { error: creditsOk.error };
+  }
+
+  revalidatePath('/dashboard');
+  return { data: { projectId: project.id } };
+}
 
 export async function createProject(topic: string, template: ProjectTemplate) {
   const supabase = await createClient();
@@ -56,7 +97,7 @@ export async function getProjects() {
 export async function getProject(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { data: null, error: '로그인이 필요합니다.' };
+  if (!user) return { data: null, error: 'Please sign in.' };
 
   const { data: project, error } = await supabase
     .from('projects')

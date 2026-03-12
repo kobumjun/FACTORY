@@ -69,6 +69,21 @@ export async function addCredits(
 
 const STARTER_CREDITS = 6;
 const STARTER_REFERENCE_TYPE = 'starter_bonus';
+const SHORT_REFERENCE_TYPE = 'short';
+
+/** True if this project was charged with 1-credit "short" generation (no per-step deduction). */
+export async function hasShortCreditForProject(userId: string, projectId: string): Promise<boolean> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('credit_transactions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('reference_type', SHORT_REFERENCE_TYPE)
+    .eq('reference_id', projectId)
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
 
 /** First-login starter credits (6). Idempotent: only grants if no prior starter_bonus transaction. */
 export async function ensureStarterCredits(userId: string): Promise<boolean> {

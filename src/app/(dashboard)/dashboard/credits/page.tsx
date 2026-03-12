@@ -23,7 +23,7 @@ export default async function CreditsPage() {
       <div className="border border-zinc-800 bg-zinc-900 p-6">
         <h2 className="text-lg font-medium text-white">Usage</h2>
         <ul className="mt-3 space-y-2 text-sm text-zinc-400">
-          <li>· 1 short-form video: 6 credits</li>
+          <li>· 1 short = 1 credit</li>
           <li>· 6 test credits are provided on first sign-in.</li>
         </ul>
       </div>

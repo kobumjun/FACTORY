@@ -1,27 +1,45 @@
 import Link from 'next/link';
 import { getProjects } from '@/actions/project';
+import { createClient } from '@/lib/supabase/server';
 import { TEMPLATES } from '@/lib/constants';
-import CreateProjectForm from '../CreateProjectForm';
+import GenerateShortForm from './GenerateShortForm';
 
 export default async function DashboardPage() {
   const { data: projects } = await getProjects();
+  const supabase = await createClient();
+
+  const projectsWithVideo = await Promise.all(
+    (projects ?? []).map(async (p) => {
+      const { data: step } = await supabase
+        .from('project_steps')
+        .select('output_data')
+        .eq('project_id', p.id)
+        .eq('step', 'video')
+        .eq('status', 'completed')
+        .single();
+      const videoUrl = (step?.output_data as { videoUrl?: string })?.videoUrl;
+      return { ...p, videoUrl };
+    })
+  );
+  const completed = projectsWithVideo.filter((p) => p.videoUrl);
+  const templateName = (id: string) => TEMPLATES.find((t) => t.id === id)?.name ?? id;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Projects</h1>
+        <h1 className="text-2xl font-bold text-white">Generate Short</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Create a new project or continue an existing one.
+          Enter a prompt and template, then click Generate Short. One short = 1 credit.
         </p>
       </div>
 
-      <CreateProjectForm templates={TEMPLATES} />
+      <GenerateShortForm templates={TEMPLATES} />
 
-      {projects && projects.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((p) => {
-            const templateName = TEMPLATES.find((t) => t.id === p.template)?.name ?? p.template;
-            return (
+      {completed.length > 0 && (
+        <div>
+          <h2 className="mb-4 text-lg font-medium text-white">Recent shorts</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {completed.map((p) => (
               <Link
                 key={p.id}
                 href={`/dashboard/projects/${p.id}`}
@@ -29,14 +47,10 @@ export default async function DashboardPage() {
               >
                 <h3 className="font-medium truncate text-white">{p.name}</h3>
                 <p className="mt-1 text-sm text-zinc-500 truncate">{p.topic}</p>
-                <span className="mt-2 inline-block text-xs text-zinc-600">{templateName}</span>
+                <span className="mt-2 inline-block text-xs text-zinc-600">{templateName(p.template)}</span>
               </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="border border-dashed border-zinc-700 bg-zinc-900 p-12 text-center text-zinc-500">
-          No projects yet. Enter a topic and choose a template above to create one.
+            ))}
+          </div>
         </div>
       )}
     </div>

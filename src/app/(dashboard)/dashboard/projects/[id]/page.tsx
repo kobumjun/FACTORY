@@ -1,31 +1,6 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getProject } from '@/actions/project';
-import { STEPS } from '@/lib/constants';
-import StepScript from '@/components/project/StepScript';
-import StepScenes from '@/components/project/StepScenes';
-import StepImages from '@/components/project/StepImages';
-import StepTTS from '@/components/project/StepTTS';
-import StepVideo from '@/components/project/StepVideo';
-import StepMetadata from '@/components/project/StepMetadata';
-import type { StepName } from '@/types/database';
-
-const STEP_COMPONENTS: Record<StepName, React.ComponentType<{ projectId: string; data: unknown }>> = {
-  script: StepScript,
-  scenes: StepScenes,
-  images: StepImages,
-  tts: StepTTS,
-  video: StepVideo,
-  metadata: StepMetadata,
-};
-
-const STEP_LABELS: Record<StepName, string> = {
-  script: '1. Script',
-  scenes: '2. Scenes',
-  images: '3. Images',
-  tts: '4. TTS',
-  video: '5. Video',
-  metadata: '6. Metadata',
-};
 
 export default async function ProjectDetailPage({
   params,
@@ -37,58 +12,96 @@ export default async function ProjectDetailPage({
 
   if (error || !project) notFound();
 
-  type StepRow = { step: StepName; status: string; output_data: unknown };
-  const stepsMap = new Map<StepName, StepRow>(
+  type StepRow = { step: string; status: string; output_data: unknown };
+  const stepsMap = new Map<string, StepRow>(
     (project.steps ?? []).map((s: StepRow) => [s.step, s])
   );
 
+  const videoStep = stepsMap.get('video');
+  const videoUrl = videoStep?.status === 'completed' && videoStep?.output_data && typeof videoStep.output_data === 'object' && 'videoUrl' in videoStep.output_data
+    ? (videoStep.output_data as { videoUrl: string }).videoUrl
+    : null;
+
+  const metadataStep = stepsMap.get('metadata');
+  const metadata = metadataStep?.status === 'completed' && metadataStep?.output_data && typeof metadataStep.output_data === 'object'
+    ? (metadataStep.output_data as { title?: string; description?: string; hashtags?: string[]; pinnedComment?: string; thumbnailCaption?: string })
+    : null;
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-white">{project.name}</h1>
-        <p className="mt-1 text-sm text-zinc-500">{project.topic}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">{project.name}</h1>
+          <p className="mt-1 text-sm text-zinc-500">{project.topic}</p>
+        </div>
+        <Link
+          href="/dashboard"
+          className="border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800"
+        >
+          Back to dashboard
+        </Link>
       </div>
 
-      <div className="space-y-6">
-        {STEPS.map((stepId) => {
-          const step = stepsMap.get(stepId);
-          const status = step?.status ?? 'pending';
-          const Component = STEP_COMPONENTS[stepId];
-
-          return (
-            <div
-              key={stepId}
-              className="border border-zinc-800 bg-zinc-900 p-6"
+      {videoUrl ? (
+        <div className="space-y-6 border border-zinc-800 bg-zinc-900 p-6">
+          <h2 className="text-lg font-medium text-white">Video</h2>
+          <div className="relative aspect-[9/16] max-w-sm overflow-hidden border border-zinc-700">
+            <video src={videoUrl} controls className="h-full w-full object-cover" />
+          </div>
+          <div className="flex gap-2">
+            <a
+              href={videoUrl}
+              download="short.mp4"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100"
             >
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-medium">{STEP_LABELS[stepId]}</h3>
-                <StatusBadge status={status} />
-              </div>
-              <Component projectId={id} data={step?.output_data} />
+              Download
+            </a>
+          </div>
+          {metadata && (
+            <div className="space-y-3 border-t border-zinc-800 pt-6 text-sm">
+              {metadata.title && (
+                <div>
+                  <span className="text-zinc-500">Title:</span>
+                  <p className="mt-1 text-zinc-300">{metadata.title}</p>
+                </div>
+              )}
+              {metadata.description && (
+                <div>
+                  <span className="text-zinc-500">Description:</span>
+                  <p className="mt-1 whitespace-pre-wrap text-zinc-300">{metadata.description}</p>
+                </div>
+              )}
+              {metadata.hashtags && metadata.hashtags.length > 0 && (
+                <div>
+                  <span className="text-zinc-500">Hashtags:</span>
+                  <p className="mt-1 text-zinc-300">{metadata.hashtags.join(' ')}</p>
+                </div>
+              )}
+              {metadata.pinnedComment && (
+                <div>
+                  <span className="text-zinc-500">Pinned comment:</span>
+                  <p className="mt-1 text-zinc-300">{metadata.pinnedComment}</p>
+                </div>
+              )}
+              {metadata.thumbnailCaption && (
+                <div>
+                  <span className="text-zinc-500">Thumbnail caption:</span>
+                  <p className="mt-1 text-zinc-300">{metadata.thumbnailCaption}</p>
+                </div>
+              )}
             </div>
-          );
-        })}
-      </div>
+          )}
+        </div>
+      ) : (
+        <div className="border border-zinc-800 bg-zinc-900 p-8 text-center text-zinc-500">
+          <p>This short is not ready yet. Generate a new one from the dashboard.</p>
+          <Link href="/dashboard" className="mt-4 inline-block text-sm text-zinc-400 hover:text-white">
+            Go to dashboard
+          </Link>
+        </div>
+      )}
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    pending: 'border-zinc-700 bg-zinc-800 text-zinc-400',
-    processing: 'border-amber-600 bg-amber-950 text-amber-400',
-    completed: 'border-zinc-600 bg-zinc-800 text-white',
-    failed: 'border-red-800 bg-red-950 text-red-400',
-  };
-  const labels: Record<string, string> = {
-    pending: 'Pending',
-    processing: 'Processing',
-    completed: 'Done',
-    failed: 'Failed',
-  };
-  return (
-    <span className={`border px-3 py-1 text-xs font-medium ${styles[status] ?? 'border-zinc-700 bg-zinc-800'}`}>
-      {labels[status] ?? status}
-    </span>
   );
 }

@@ -10,7 +10,7 @@ import { writeFile, readFile, unlink } from 'fs/promises';
 import path from 'path';
 import os from 'os';
 
-export async function renderProjectVideo(projectId: string) {
+export async function renderProjectVideo(projectId: string, options?: { bundled?: boolean }) {
   const supabase = await createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -39,11 +39,15 @@ export async function renderProjectVideo(projectId: string) {
     return { error: 'Generate images and TTS first.' };
   }
 
-  const creditsOk = await useCredits(user.id, CREDITS.video, 'usage', {
-    id: projectId,
-    type: 'project_step',
-  });
-  if (!creditsOk.ok) return { error: creditsOk.error };
+  const { hasShortCreditForProject } = await import('@/lib/services/credits');
+  const skipCredit = options?.bundled ?? (await hasShortCreditForProject(user.id, projectId));
+  if (!skipCredit) {
+    const creditsOk = await useCredits(user.id, CREDITS.video, 'usage', {
+      id: projectId,
+      type: 'project_step',
+    });
+    if (!creditsOk.ok) return { error: creditsOk.error };
+  }
 
   await admin.from('project_steps').update({
     status: 'processing',
@@ -94,7 +98,7 @@ export async function renderProjectVideo(projectId: string) {
     await admin.from('project_steps').update({
       status: 'completed',
       output_data: { videoUrl },
-      credits_used: CREDITS.video,
+      credits_used: skipCredit ? 0 : CREDITS.video,
       updated_at: new Date().toISOString(),
     }).eq('project_id', projectId).eq('step', 'video');
 

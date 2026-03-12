@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getLLMProvider } from '@/lib/providers/llm';
 
-export async function splitScenes(projectId: string) {
+const MAX_SCENES = 4;
+
+export async function splitScenes(projectId: string, _options?: { bundled?: boolean }) {
   const supabase = await createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -41,8 +43,9 @@ ${script}`;
   try {
     raw = await llm.generateText(prompt);
     const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
-    const scenes = JSON.parse(cleaned) as string[];
+    let scenes = JSON.parse(cleaned) as string[];
     if (!Array.isArray(scenes) || scenes.length === 0) throw new Error('Invalid scenes format');
+    scenes = scenes.slice(0, MAX_SCENES);
 
     await admin.from('project_steps').update({
       status: 'completed',
