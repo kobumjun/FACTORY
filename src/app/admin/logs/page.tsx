@@ -5,11 +5,11 @@ export default async function AdminLogsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">생성 로그</h1>
-      <div className="overflow-x-auto rounded-xl border border-zinc-800">
+      <h1 className="text-2xl font-bold text-white">생성 로그</h1>
+      <div className="overflow-x-auto border border-zinc-800">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
+            <tr className="border-b border-zinc-800 bg-zinc-900">
               <th className="px-4 py-3 text-left">일시</th>
               <th className="px-4 py-3 text-left">유저</th>
               <th className="px-4 py-3 text-left">프로젝트</th>
@@ -27,7 +27,7 @@ export default async function AdminLogsPage() {
                 <td className="px-4 py-3 truncate max-w-[120px]">{log.project_id ?? '-'}</td>
                 <td className="px-4 py-3">{log.step}</td>
                 <td className="px-4 py-3">
-                  <span className={log.status === 'success' ? 'text-emerald-500' : 'text-red-500'}>
+                  <span className={log.status === 'success' ? 'text-white' : 'text-red-400'}>
                     {log.status}
                   </span>
                 </td>

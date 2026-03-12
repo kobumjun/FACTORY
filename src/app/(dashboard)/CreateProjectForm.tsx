@@ -34,28 +34,28 @@ export default function CreateProjectForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-zinc-400 mb-2">주제</label>
+        <label className="mb-2 block text-sm font-medium text-zinc-400">주제</label>
         <input
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="예: 아침 일찍 일어나는 습관의 장점"
           required
-          className="w-full max-w-md rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none"
+          className="w-full max-w-md border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-zinc-400 mb-2">템플릿</label>
+        <label className="mb-2 block text-sm font-medium text-zinc-400">템플릿</label>
         <div className="flex flex-wrap gap-2">
           {templates.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTemplate(t.id)}
-              className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
+              className={`border px-4 py-2 text-sm ${
                 template === t.id
-                  ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
-                  : 'border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                  ? 'border-white bg-zinc-700 text-white'
+                  : 'border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
               }`}
             >
               {t.name}
@@ -64,12 +64,12 @@ export default function CreateProjectForm({
         </div>
       </div>
       {error && (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-red-400">{error}</p>
       )}
       <button
         type="submit"
         disabled={loading || !topic.trim()}
-        className="rounded-lg bg-emerald-600 px-6 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="border border-zinc-600 bg-white px-6 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? '생성 중...' : '새 프로젝트 만들기'}
       </button>

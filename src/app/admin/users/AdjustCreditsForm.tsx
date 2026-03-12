@@ -25,16 +25,16 @@ export default function AdjustCreditsForm({ userId }: { userId: string }) {
         onChange={(e) => setAmount(Number(e.target.value))}
         min={1}
         max={1000}
-        className="w-20 rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-sm"
+        className="w-20 border border-zinc-700 bg-zinc-800 px-2 py-1 text-sm text-white"
       />
       <button
         type="submit"
         disabled={loading}
-        className="rounded bg-emerald-600 px-2 py-1 text-xs hover:bg-emerald-500 disabled:opacity-50"
+        className="border border-zinc-600 bg-white px-2 py-1 text-xs text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
         {loading ? '...' : '지급'}
       </button>
-      {done && <span className="text-xs text-emerald-500">완료</span>}
+      {done && <span className="text-xs text-zinc-400">완료</span>}
     </form>
   );
 }

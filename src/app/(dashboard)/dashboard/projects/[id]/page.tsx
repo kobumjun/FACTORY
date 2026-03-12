@@ -45,7 +45,7 @@ export default async function ProjectDetailPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">{project.name}</h1>
+        <h1 className="text-2xl font-bold text-white">{project.name}</h1>
         <p className="mt-1 text-sm text-zinc-500">{project.topic}</p>
       </div>
 
@@ -58,7 +58,7 @@ export default async function ProjectDetailPage({
           return (
             <div
               key={stepId}
-              className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6"
+              className="border border-zinc-800 bg-zinc-900 p-6"
             >
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-medium">{STEP_LABELS[stepId]}</h3>
@@ -75,10 +75,10 @@ export default async function ProjectDetailPage({
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    pending: 'bg-zinc-700 text-zinc-400',
-    processing: 'bg-amber-500/20 text-amber-400',
-    completed: 'bg-emerald-500/20 text-emerald-400',
-    failed: 'bg-red-500/20 text-red-400',
+    pending: 'border-zinc-700 bg-zinc-800 text-zinc-400',
+    processing: 'border-amber-600 bg-amber-950 text-amber-400',
+    completed: 'border-zinc-600 bg-zinc-800 text-white',
+    failed: 'border-red-800 bg-red-950 text-red-400',
   };
   const labels: Record<string, string> = {
     pending: '대기중',
@@ -87,7 +87,7 @@ function StatusBadge({ status }: { status: string }) {
     failed: '실패',
   };
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-medium ${styles[status] ?? 'bg-zinc-700'}`}>
+    <span className={`border px-3 py-1 text-xs font-medium ${styles[status] ?? 'border-zinc-700 bg-zinc-800'}`}>
       {labels[status] ?? status}
     </span>
   );

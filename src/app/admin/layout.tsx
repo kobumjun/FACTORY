@@ -9,7 +9,7 @@ export default async function AdminLayout({
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  if (!user) redirect('/');
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
   if (profile?.role !== 'admin') redirect('/dashboard');
@@ -17,7 +17,7 @@ export default async function AdminLayout({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin" className="text-emerald-500 hover:underline">관리자</Link>
+        <Link href="/admin" className="font-medium text-white hover:underline">관리자</Link>
         <Link href="/admin/users" className="text-zinc-400 hover:text-white">유저</Link>
         <Link href="/admin/logs" className="text-zinc-400 hover:text-white">로그</Link>
       </div>

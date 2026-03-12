@@ -29,7 +29,7 @@ export default function StepImages({
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {imageUrls.map((url, i) => (
-            <div key={i} className="relative aspect-[9/16] overflow-hidden rounded-lg bg-zinc-800">
+            <div key={i} className="relative aspect-[9/16] overflow-hidden border border-zinc-700 bg-zinc-800">
               <Image
                 src={url}
                 alt={`Scene ${i + 1}`}
@@ -50,11 +50,11 @@ export default function StepImages({
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-50"
+        className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
         {loading ? '생성 중...' : '이미지 생성'}
       </button>
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>
   );
 }

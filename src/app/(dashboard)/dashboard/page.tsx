@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">프로젝트</h1>
+        <h1 className="text-2xl font-bold text-white">프로젝트</h1>
         <p className="mt-1 text-sm text-zinc-500">
           새 프로젝트를 만들거나 기존 프로젝트를 이어서 진행하세요.
         </p>
@@ -25,9 +25,9 @@ export default async function DashboardPage() {
               <Link
                 key={p.id}
                 href={`/dashboard/projects/${p.id}`}
-                className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 transition-colors hover:border-zinc-700 hover:bg-zinc-800/50"
+                className="border border-zinc-800 bg-zinc-900 p-5 hover:border-zinc-700 hover:bg-zinc-800"
               >
-                <h3 className="font-medium truncate">{p.name}</h3>
+                <h3 className="font-medium truncate text-white">{p.name}</h3>
                 <p className="mt-1 text-sm text-zinc-500 truncate">{p.topic}</p>
                 <span className="mt-2 inline-block text-xs text-zinc-600">{templateName}</span>
               </Link>
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
           })}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 p-12 text-center text-zinc-500">
+        <div className="border border-dashed border-zinc-700 bg-zinc-900 p-12 text-center text-zinc-500">
           아직 프로젝트가 없습니다. 위 폼에서 주제와 템플릿을 선택하고 새 프로젝트를 만들어보세요.
         </div>
       )}

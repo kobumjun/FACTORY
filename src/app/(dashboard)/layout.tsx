@@ -11,7 +11,7 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect('/');
   }
 
   const { data: profile } = await supabase
@@ -24,11 +24,11 @@ export default async function DashboardLayout({
     <div className="min-h-screen">
       <Sidebar />
       <main className="pl-64">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-6 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900 px-6">
           <span className="text-sm text-zinc-500">대시보드</span>
           <div className="flex items-center gap-4">
             <span className="text-sm text-zinc-400">
-              크레딧: <strong className="text-emerald-500">{profile?.credits ?? 0}</strong>
+              크레딧: <strong className="text-white">{profile?.credits ?? 0}</strong>
             </span>
           </div>
         </header>

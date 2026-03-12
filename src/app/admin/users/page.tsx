@@ -6,11 +6,11 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">유저 목록</h1>
-      <div className="overflow-x-auto rounded-xl border border-zinc-800">
+      <h1 className="text-2xl font-bold text-white">유저 목록</h1>
+      <div className="overflow-x-auto border border-zinc-800">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
+            <tr className="border-b border-zinc-800 bg-zinc-900">
               <th className="px-4 py-3 text-left">이메일</th>
               <th className="px-4 py-3 text-left">이름</th>
               <th className="px-4 py-3 text-left">역할</th>

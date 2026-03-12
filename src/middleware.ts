@@ -23,17 +23,20 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
 
-  // 인증 필요 경로
+  if (path === '/auth/callback') {
+    return response;
+  }
+
   const authPaths = ['/dashboard', '/dashboard/projects', '/dashboard/credits'];
   const isAuthRequired = authPaths.some((p) => path.startsWith(p));
   const isAdminPath = path.startsWith('/admin');
 
   if (isAuthRequired && !user) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   if (isAdminPath && !user) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   if (user && (path === '/login' || path === '/signup')) {

@@ -56,11 +56,11 @@ export default function StepMetadata({
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-50"
+        className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
         {loading ? '생성 중...' : '메타데이터 생성'}
       </button>
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>
   );
 }
