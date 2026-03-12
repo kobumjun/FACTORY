@@ -109,7 +109,8 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
     await ffmpeg.exec(args);
 
     const data = (await ffmpeg.readFile(outputName)) as Uint8Array;
-    const blob = new Blob([data.buffer], { type: 'video/mp4' });
+    const safeUint8 = new Uint8Array(data);
+    const blob = new Blob([safeUint8], { type: 'video/mp4' });
 
     // 4) Supabase Storage 업로드
     const filePath = `${projectId}/videos/final.mp4`;
