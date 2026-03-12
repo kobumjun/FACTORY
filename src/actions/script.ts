@@ -8,12 +8,15 @@ import { useCredits } from '@/lib/services/credits';
 import { CREDITS } from '@/lib/constants';
 import type { ProjectTemplate } from '@/types/database';
 
-const TEMPLATE_PROMPTS: Record<ProjectTemplate, string> = {
-  motivation: '동기부여와 성장에 초점을 맞춘 짧고 임팩트 있는 톤으로',
-  informative: '팩트 기반 정보를 쉽게 전달하는 톤으로',
-  quotes: '명언이나 인용구 형식으로 짧고 감동적으로',
-  horror: '공포·스릴러 분위기로 긴장감 있게',
-  health: '운동·건강 팁을 실용적으로',
+const REEL_PROMPTS: Record<ProjectTemplate, string> = {
+  meme: `[Meme 릴스]
+- 짧고 강한 훅, 밈처럼 바로 이해되는 상황
+- 과장된 표정/구도/상황, 웃기고 임팩트 있게
+- 짧고 중독성 있는 리듬, 실제 릴스 밈 영상 느낌`,
+  story: `[Story 릴스]
+- 진중하고 몰입감 있는 분위기
+- 철학, 인간관계, 삶, 감정, 관찰, 짧은 서사
+- 감정선과 장면 전환이 자연스럽고 진지하게`,
 };
 
 export async function generateScript(projectId: string, options?: { bundled?: boolean }) {
@@ -46,26 +49,38 @@ export async function generateScript(projectId: string, options?: { bundled?: bo
     updated_at: new Date().toISOString(),
   }).eq('project_id', projectId).eq('step', 'script');
 
-  const templatePrompt = TEMPLATE_PROMPTS[project.template as ProjectTemplate];
+  const reelTone = REEL_PROMPTS[project.template as ProjectTemplate];
   const llm = getLLMProvider();
 
-  const prompt = `당신은 쇼츠(세로형 짧은 영상)용 스크립트 작가입니다.
+  const prompt = `당신은 릴스/쇼츠용 연출 기획자입니다. 사용자 주제를 바탕으로 "릴스 구성안"을 JSON으로 작성하세요.
 
 주제: ${project.topic}
-스타일: ${templatePrompt}
+
+톤: ${reelTone}
+
+아래 형식의 JSON만 출력하세요 (다른 설명 없이):
+{
+  "concept": "전체 릴스 컨셉 한 문장",
+  "hook": "첫 3초를 사로잡는 훅 문구",
+  "mood": "전체 분위기/페이싱 (예: 빠른 컷, 여운, 긴장)",
+  "ending": "마무리 비트/여운",
+  "scenes": [
+    {
+      "narration": "이 장면에서 나오는 나레이션 문장",
+      "visualDirection": "subject(주체), expression(표정), composition(구도), framing(프레이밍), background(배경), lighting(조명), style(스타일 태그), emotionalTone(감정 톤)"
+    }
+  ]
+}
 
 요구사항:
-- 30~60초 분량 (약 100~200자)
-- 문장을 3~6개의 장면으로 나눌 수 있게 작성
-- 각 장면은 한 문장 또는 짧은 문단
-- 쇼츠에 맞게 임팩트 있게
-
-스크립트만 출력하고, 다른 설명은 하지 마세요.`;
+- scenes 개수는 3~5개
+- narration은 TTS로 읽힐 문장 (짧고 임팩트 있게)
+- visualDirection은 각 장면의 시각 연출을 구체적으로 (이미지 생성용)`;
 
   const start = Date.now();
-  let script = '';
+  let raw = '';
   try {
-    script = await llm.generateText(prompt);
+    raw = await llm.generateText(prompt);
   } catch (e) {
     const err = e instanceof Error ? e.message : 'LLM 오류';
     await admin.from('project_steps').update({
@@ -86,6 +101,9 @@ export async function generateScript(projectId: string, options?: { bundled?: bo
     revalidatePath(`/dashboard/projects/${projectId}`);
     return { error: err };
   }
+
+  const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
+  const script = cleaned;
 
   await admin.from('project_steps').update({
     status: 'completed',

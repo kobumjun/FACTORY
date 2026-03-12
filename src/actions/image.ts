@@ -6,6 +6,14 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getImageProvider } from '@/lib/providers/image';
 import { useCredits } from '@/lib/services/credits';
 import { CREDITS } from '@/lib/constants';
+import type { ProjectTemplate } from '@/types/database';
+
+const IMAGE_STYLE_BASE = 'Vertical 9:16, cartoon, meme-like, stylish modern animation, clean digital illustration, cinematic anime-like framing. No photorealistic, no stock photo feel. No text overlay.';
+
+const IMAGE_STYLE_BY_TEMPLATE: Record<ProjectTemplate, string> = {
+  meme: `${IMAGE_STYLE_BASE} Exaggerated expression, absurd or punchy visual setup, fast readability, bold visual contrast, humorous cartoon energy, meme reel style.`,
+  story: `${IMAGE_STYLE_BASE} Calm cinematic composition, modern anime illustration, emotional silence, introspective atmosphere, stylish urban or minimal background, soft but intentional lighting.`,
+};
 
 export async function generateImages(projectId: string, options?: { bundled?: boolean }) {
   const supabase = await createClient();
@@ -23,7 +31,10 @@ export async function generateImages(projectId: string, options?: { bundled?: bo
     .eq('step', 'scenes')
     .single();
 
-  const scenes = (scenesStep?.output_data as { scenes?: string[] })?.scenes;
+  const output = scenesStep?.output_data as { scenes?: string[]; visualDirections?: string[] } | null;
+  const scenes = output?.scenes ?? [];
+  const visualDirections = output?.visualDirections ?? scenes;
+
   if (!Array.isArray(scenes) || scenes.length === 0) return { error: 'Split scenes first.' };
 
   const { hasShortCreditForProject } = await import('@/lib/services/credits');
@@ -42,21 +53,16 @@ export async function generateImages(projectId: string, options?: { bundled?: bo
     updated_at: new Date().toISOString(),
   }).eq('project_id', projectId).eq('step', 'images');
 
-  const imageProvider = getImageProvider();
-  const styleMap: Record<string, string> = {
-    motivation: 'modern motivational aesthetic, clean, professional',
-    informative: 'clean infographic style, clear visuals',
-    quotes: 'elegant typography, minimal background',
-    horror: 'dark moody atmosphere, mysterious',
-    health: 'bright fitness lifestyle, energetic',
-  };
-  const style = styleMap[project.template] || 'clean modern';
+  const template = (project.template || 'story') as ProjectTemplate;
+  const styleSuffix = IMAGE_STYLE_BY_TEMPLATE[template];
 
+  const imageProvider = getImageProvider();
   const imageUrls: string[] = [];
 
   try {
     for (let i = 0; i < scenes.length; i++) {
-      const prompt = `Vertical 9:16 image for shorts video. Scene: ${scenes[i]}. Style: ${style}. No text overlay. High quality.`;
+      const visual = visualDirections[i] || scenes[i];
+      const prompt = `Scene ${i + 1}: ${visual}. Style: ${styleSuffix}`;
       const url = await imageProvider.generateImage(prompt);
       imageUrls.push(url);
     }

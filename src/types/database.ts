@@ -1,5 +1,5 @@
 export type ProfileRole = 'user' | 'admin';
-export type ProjectTemplate = 'motivation' | 'informative' | 'quotes' | 'horror' | 'health';
+export type ProjectTemplate = 'meme' | 'story';
 export type StepStatus = 'pending' | 'processing' | 'completed' | 'failed';
 export type StepName = 'script' | 'scenes' | 'images' | 'tts' | 'video' | 'metadata';
 export type CreditTransactionType = 'purchase' | 'usage' | 'admin_adjust' | 'refund';

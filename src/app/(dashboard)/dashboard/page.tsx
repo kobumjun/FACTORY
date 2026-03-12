@@ -29,7 +29,7 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Generate Short</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Enter a prompt and template, then click Generate Short. One short = 1 credit.
+          Enter a prompt and style (Meme or Story), then Generate Short. One short = 1 credit.
         </p>
       </div>
 

@@ -6,6 +6,16 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getTTSProvider } from '@/lib/providers/tts';
 import { useCredits } from '@/lib/services/credits';
 import { CREDITS } from '@/lib/constants';
+import type { ProjectTemplate } from '@/types/database';
+
+/** Meme: funny, exaggerated, short punchy. Story: calm male, low-energy, philosophical. */
+function getVoiceForTemplate(template: ProjectTemplate): string | undefined {
+  const provider = process.env.TTS_PROVIDER ?? 'elevenlabs';
+  if (template === 'meme') {
+    return provider === 'elevenlabs' ? process.env.ELEVENLABS_VOICE_ID_MEME : process.env.OPENAI_VOICE_MEME;
+  }
+  return provider === 'elevenlabs' ? (process.env.ELEVENLABS_VOICE_ID_STORY || process.env.ELEVENLABS_VOICE_ID) : (process.env.OPENAI_VOICE_STORY || process.env.OPENAI_VOICE);
+}
 
 export async function generateTTS(projectId: string, options?: { bundled?: boolean }) {
   const supabase = await createClient();
@@ -13,7 +23,7 @@ export async function generateTTS(projectId: string, options?: { bundled?: boole
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Please sign in.' };
 
-  const { data: project } = await supabase.from('projects').select('user_id').eq('id', projectId).eq('user_id', user.id).single();
+  const { data: project } = await supabase.from('projects').select('user_id, template').eq('id', projectId).eq('user_id', user.id).single();
   if (!project) return { error: 'Project not found.' };
 
   const { data: scenesStep } = await supabase
@@ -41,12 +51,15 @@ export async function generateTTS(projectId: string, options?: { bundled?: boole
     updated_at: new Date().toISOString(),
   }).eq('project_id', projectId).eq('step', 'tts');
 
+  const template = (project.template || 'story') as ProjectTemplate;
+  const voice = getVoiceForTemplate(template);
+
   const ttsProvider = getTTSProvider();
   const audioUrls: string[] = [];
 
   try {
     for (let i = 0; i < scenes.length; i++) {
-      const buffer = await ttsProvider.generateSpeech(scenes[i]);
+      const buffer = await ttsProvider.generateSpeech(scenes[i], voice ? { voice } : undefined);
       const path = `${projectId}/tts/scene-${i}.mp3`;
       await admin.storage
         .from('projects')

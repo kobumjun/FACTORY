@@ -11,7 +11,7 @@ export async function generateMetadata(projectId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Please sign in.' };
 
-  const { data: project } = await supabase.from('projects').select('user_id, topic').eq('id', projectId).eq('user_id', user.id).single();
+  const { data: project } = await supabase.from('projects').select('user_id, topic, template').eq('id', projectId).eq('user_id', user.id).single();
   if (!project) return { error: 'Project not found.' };
 
   const { data: scriptStep } = await supabase
@@ -29,9 +29,13 @@ export async function generateMetadata(projectId: string) {
     updated_at: new Date().toISOString(),
   }).eq('project_id', projectId).eq('step', 'metadata');
 
+  const template = (project.template || 'story') as 'meme' | 'story';
+  const toneHint = template === 'meme' ? '밈 릴스처럼 클릭 유도, 재미있는' : '감성 스토리 릴스처럼 몰입감 있는';
+
   const llm = getLLMProvider();
-  const prompt = `다음 쇼츠 영상의 메타데이터를 JSON으로 생성해주세요.
+  const prompt = `다음 릴스/쇼츠 영상의 메타데이터를 JSON으로 생성해주세요.
 주제: ${project.topic}
+톤: ${toneHint}
 스크립트 요약: ${script.slice(0, 200)}
 
 다음 형식의 JSON만 출력하세요 (다른 텍스트 없이):

@@ -12,7 +12,7 @@ export default function CreateProjectForm({
   templates: readonly Template[];
 }) {
   const [topic, setTopic] = useState('');
-  const [template, setTemplate] = useState<TemplateId>('motivation');
+  const [template, setTemplate] = useState<TemplateId>('meme');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,13 +39,13 @@ export default function CreateProjectForm({
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="e.g. Benefits of waking up early"
+          placeholder="e.g. 왜 아침에 일어나기 힘든지, 첫눈에 반한 순간"
           required
           className="w-full max-w-md border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
         />
       </div>
       <div>
-        <label className="mb-2 block text-sm font-medium text-zinc-400">Template</label>
+        <label className="mb-2 block text-sm font-medium text-zinc-400">Style</label>
         <div className="flex flex-wrap gap-2">
           {templates.map((t) => (
             <button

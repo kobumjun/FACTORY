@@ -29,7 +29,7 @@ export default function GenerateShortForm({
   templates: readonly Template[];
 }) {
   const [prompt, setPrompt] = useState('');
-  const [template, setTemplate] = useState<TemplateId>('motivation');
+  const [template, setTemplate] = useState<TemplateId>('meme');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -135,14 +135,14 @@ export default function GenerateShortForm({
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g. Benefits of waking up early"
+            placeholder="e.g. 왜 아침에 일어나기 힘든지, 첫눈에 반한 순간"
             required
             disabled={loading}
             className="w-full max-w-md border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none disabled:opacity-70"
           />
         </div>
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-400">Template</label>
+          <label className="mb-2 block text-sm font-medium text-zinc-400">Style</label>
           <div className="flex flex-wrap gap-2">
             {templates.map((t) => (
               <button
