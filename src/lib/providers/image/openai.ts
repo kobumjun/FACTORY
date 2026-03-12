@@ -13,7 +13,7 @@ export function createOpenAIImage(): ImageProvider {
         model: 'dall-e-3',
         prompt,
         n: 1,
-        size: (options?.size as '1024x1024' | '1024x1792') || '1024x1792', // 세로형
+        size: (options?.size ?? '768x1344') === '768x1344' ? '1024x1792' : (options?.size as '1024x1024' | '1024x1792'), // 기본 768x1344, DALL-E는 1024x1792로 매핑
         response_format: 'url',
         quality: 'standard',
       });

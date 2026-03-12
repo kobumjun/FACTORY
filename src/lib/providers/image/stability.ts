@@ -11,7 +11,7 @@ export function createStabilityImage(): ImageProvider {
 
   return {
     async generateImage(prompt: string, options?: { size?: string }) {
-      const size = options?.size ?? '1024x1792';
+      const size = options?.size ?? '768x1344';
       const [width, height] = size.split('x').map(Number);
 
       const res = await fetch(
@@ -26,8 +26,8 @@ export function createStabilityImage(): ImageProvider {
           body: JSON.stringify({
             text_prompts: [{ text: prompt }],
             cfg_scale: 7,
-            height: height || 1792,
-            width: width || 1024,
+            height: height || 1344,
+            width: width || 768,
             samples: 1,
             steps: 30,
             style_preset: 'photographic',
