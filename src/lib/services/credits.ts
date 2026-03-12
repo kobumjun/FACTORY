@@ -27,7 +27,7 @@ export async function useCredits(
 
   const current = profile?.credits ?? 0;
   if (current < amount) {
-    return { ok: false, error: '크레딧이 부족합니다.' };
+    return { ok: false, error: 'Insufficient credits.' };
   }
 
   const newBalance = current - amount;
@@ -65,4 +65,24 @@ export async function addCredits(
     reference_id: reference.id ?? null,
     reference_type: reference.type ?? null,
   });
+}
+
+const STARTER_CREDITS = 6;
+const STARTER_REFERENCE_TYPE = 'starter_bonus';
+
+/** First-login starter credits (6). Idempotent: only grants if no prior starter_bonus transaction. */
+export async function ensureStarterCredits(userId: string): Promise<boolean> {
+  const supabase = createAdminClient();
+  const { data: existing } = await supabase
+    .from('credit_transactions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('reference_type', STARTER_REFERENCE_TYPE)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) return false;
+
+  await addCredits(userId, STARTER_CREDITS, 'admin_adjust', { type: STARTER_REFERENCE_TYPE });
+  return true;
 }

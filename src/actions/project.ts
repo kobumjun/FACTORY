@@ -8,9 +8,9 @@ import { STEPS } from '@/lib/constants';
 export async function createProject(topic: string, template: ProjectTemplate) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: '로그인이 필요합니다.' };
+  if (!user) return { error: 'Please sign in.' };
 
-  const name = topic.slice(0, 50) || '새 프로젝트';
+  const name = topic.slice(0, 50) || 'New project';
 
   const { data: project, error } = await supabase
     .from('projects')
@@ -41,7 +41,7 @@ export async function createProject(topic: string, template: ProjectTemplate) {
 export async function getProjects() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { data: [], error: '로그인이 필요합니다.' };
+  if (!user) return { data: [], error: 'Please sign in.' };
 
   const { data, error } = await supabase
     .from('projects')
@@ -65,7 +65,7 @@ export async function getProject(id: string) {
     .eq('user_id', user.id)
     .single();
 
-  if (error || !project) return { data: null, error: error?.message ?? 'Not found' };
+  if (error || !project) return { data: null, error: error?.message ?? 'Project not found.' };
 
   const { data: steps } = await supabase
     .from('project_steps')

@@ -20,7 +20,7 @@ export async function generateScript(projectId: string) {
   const supabase = await createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: '로그인이 필요합니다.' };
+  if (!user) return { error: 'Please sign in.' };
 
   const { data: project } = await supabase
     .from('projects')
@@ -29,7 +29,7 @@ export async function generateScript(projectId: string) {
     .eq('user_id', user.id)
     .single();
 
-  if (!project) return { error: '프로젝트를 찾을 수 없습니다.' };
+  if (!project) return { error: 'Project not found.' };
 
   const creditsOk = await useCredits(user.id, CREDITS.script, 'usage', {
     id: projectId,

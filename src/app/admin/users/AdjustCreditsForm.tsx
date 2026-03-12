@@ -32,9 +32,9 @@ export default function AdjustCreditsForm({ userId }: { userId: string }) {
         disabled={loading}
         className="border border-zinc-600 bg-white px-2 py-1 text-xs text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
-        {loading ? '...' : '지급'}
+        {loading ? '...' : 'Grant'}
       </button>
-      {done && <span className="text-xs text-zinc-400">완료</span>}
+      {done && <span className="text-xs text-zinc-400">Done</span>}
     </form>
   );
 }

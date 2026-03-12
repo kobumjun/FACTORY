@@ -1,10 +1,9 @@
-// 템플릿 상수
 export const TEMPLATES = [
-  { id: 'motivation', name: '동기부여 쇼츠', description: '동기부여·성장 콘텐츠용' },
-  { id: 'informative', name: '정보형 쇼츠', description: '팩트·정보 전달용' },
-  { id: 'quotes', name: '명언 쇼츠', description: '명언·인용구 형식' },
-  { id: 'horror', name: '공포썰 쇼츠', description: '공포·스릴러 스토리' },
-  { id: 'health', name: '헬스 쇼츠', description: '운동·건강 팁' },
+  { id: 'motivation', name: 'Motivation', description: 'Motivation and growth' },
+  { id: 'informative', name: 'Informative', description: 'Facts and how-tos' },
+  { id: 'quotes', name: 'Quotes', description: 'Quotes and sayings' },
+  { id: 'horror', name: 'Horror', description: 'Horror and thriller' },
+  { id: 'health', name: 'Health', description: 'Fitness and wellness' },
 ] as const;
 
 export type TemplateId = (typeof TEMPLATES)[number]['id'];

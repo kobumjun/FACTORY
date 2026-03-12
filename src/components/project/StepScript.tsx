@@ -38,7 +38,7 @@ export default function StepScript({
         disabled={loading}
         className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
-        {loading ? '생성 중...' : '스크립트 생성 (1 크레딧)'}
+        {loading ? 'Generating...' : 'Generate script (1 credit)'}
       </button>
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>

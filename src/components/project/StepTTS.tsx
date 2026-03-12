@@ -26,7 +26,7 @@ export default function StepTTS({
   if (audioUrls && audioUrls.length > 0) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-zinc-500">TTS 오디오 {audioUrls.length}개 생성 완료</p>
+        <p className="text-sm text-zinc-500">TTS audio generated ({audioUrls.length} files)</p>
         {audioUrls.map((url, i) => (
           <audio key={i} src={url} controls className="w-full max-w-md" />
         ))}
@@ -36,13 +36,13 @@ export default function StepTTS({
 
   return (
     <div>
-      <p className="mb-2 text-sm text-zinc-500">장면별 TTS를 생성합니다. (1 크레딧)</p>
+      <p className="mb-2 text-sm text-zinc-500">Generate TTS for each scene. (1 credit)</p>
       <button
         onClick={handleGenerate}
         disabled={loading}
         className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
-        {loading ? '생성 중...' : 'TTS 생성'}
+        {loading ? 'Generating...' : 'Generate TTS'}
       </button>
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>

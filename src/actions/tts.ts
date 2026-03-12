@@ -11,10 +11,10 @@ export async function generateTTS(projectId: string) {
   const supabase = await createClient();
   const admin = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: '로그인이 필요합니다.' };
+  if (!user) return { error: 'Please sign in.' };
 
   const { data: project } = await supabase.from('projects').select('user_id').eq('id', projectId).eq('user_id', user.id).single();
-  if (!project) return { error: '프로젝트를 찾을 수 없습니다.' };
+  if (!project) return { error: 'Project not found.' };
 
   const { data: scenesStep } = await supabase
     .from('project_steps')
@@ -24,7 +24,7 @@ export async function generateTTS(projectId: string) {
     .single();
 
   const scenes = (scenesStep?.output_data as { scenes?: string[] })?.scenes;
-  if (!Array.isArray(scenes) || scenes.length === 0) return { error: '먼저 장면을 분할해주세요.' };
+  if (!Array.isArray(scenes) || scenes.length === 0) return { error: 'Split scenes first.' };
 
   const creditsOk = await useCredits(user.id, CREDITS.tts, 'usage', {
     id: projectId,

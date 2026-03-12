@@ -19,12 +19,12 @@ const STEP_COMPONENTS: Record<StepName, React.ComponentType<{ projectId: string;
 };
 
 const STEP_LABELS: Record<StepName, string> = {
-  script: '1. 스크립트 생성',
-  scenes: '2. 장면 분할',
-  images: '3. 장면별 이미지',
-  tts: '4. TTS 생성',
-  video: '5. 영상 합성',
-  metadata: '6. 메타데이터',
+  script: '1. Script',
+  scenes: '2. Scenes',
+  images: '3. Images',
+  tts: '4. TTS',
+  video: '5. Video',
+  metadata: '6. Metadata',
 };
 
 export default async function ProjectDetailPage({
@@ -81,10 +81,10 @@ function StatusBadge({ status }: { status: string }) {
     failed: 'border-red-800 bg-red-950 text-red-400',
   };
   const labels: Record<string, string> = {
-    pending: '대기중',
-    processing: '생성중',
-    completed: '완료',
-    failed: '실패',
+    pending: 'Pending',
+    processing: 'Processing',
+    completed: 'Done',
+    failed: 'Failed',
   };
   return (
     <span className={`border px-3 py-1 text-xs font-medium ${styles[status] ?? 'border-zinc-700 bg-zinc-800'}`}>

@@ -34,18 +34,18 @@ export default function CreateProjectForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-2 block text-sm font-medium text-zinc-400">주제</label>
+        <label className="mb-2 block text-sm font-medium text-zinc-400">Topic</label>
         <input
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="예: 아침 일찍 일어나는 습관의 장점"
+          placeholder="e.g. Benefits of waking up early"
           required
           className="w-full max-w-md border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
         />
       </div>
       <div>
-        <label className="mb-2 block text-sm font-medium text-zinc-400">템플릿</label>
+        <label className="mb-2 block text-sm font-medium text-zinc-400">Template</label>
         <div className="flex flex-wrap gap-2">
           {templates.map((t) => (
             <button
@@ -71,7 +71,7 @@ export default function CreateProjectForm({
         disabled={loading || !topic.trim()}
         className="border border-zinc-600 bg-white px-6 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? '생성 중...' : '새 프로젝트 만들기'}
+        {loading ? 'Creating...' : 'Create project'}
       </button>
     </form>
   );

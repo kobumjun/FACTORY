@@ -9,9 +9,9 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">프로젝트</h1>
+        <h1 className="text-2xl font-bold text-white">Projects</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          새 프로젝트를 만들거나 기존 프로젝트를 이어서 진행하세요.
+          Create a new project or continue an existing one.
         </p>
       </div>
 
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="border border-dashed border-zinc-700 bg-zinc-900 p-12 text-center text-zinc-500">
-          아직 프로젝트가 없습니다. 위 폼에서 주제와 템플릿을 선택하고 새 프로젝트를 만들어보세요.
+          No projects yet. Enter a topic and choose a template above to create one.
         </div>
       )}
     </div>

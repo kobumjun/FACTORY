@@ -46,13 +46,13 @@ export default function StepImages({
 
   return (
     <div>
-      <p className="mb-2 text-sm text-zinc-500">장면별 이미지를 생성합니다. 장면 수만큼 크레딧이 소모됩니다.</p>
+      <p className="mb-2 text-sm text-zinc-500">Generate one image per scene. Credits are used per scene.</p>
       <button
         onClick={handleGenerate}
         disabled={loading}
         className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
-        {loading ? '생성 중...' : '이미지 생성'}
+        {loading ? 'Generating...' : 'Generate images'}
       </button>
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>

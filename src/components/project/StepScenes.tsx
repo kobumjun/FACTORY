@@ -37,13 +37,13 @@ export default function StepScenes({
 
   return (
     <div>
-      <p className="mb-2 text-sm text-zinc-500">스크립트를 장면별로 나눕니다. 먼저 스크립트를 생성해주세요.</p>
+      <p className="mb-2 text-sm text-zinc-500">Split the script into scenes. Generate a script first.</p>
       <button
         onClick={handleSplit}
         disabled={loading}
         className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
-        {loading ? '분할 중...' : '장면 분할'}
+        {loading ? 'Splitting...' : 'Split scenes'}
       </button>
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>

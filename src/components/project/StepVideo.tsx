@@ -37,7 +37,7 @@ export default function StepVideo({
             rel="noopener noreferrer"
             className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100"
           >
-            다운로드
+            Download
           </a>
         </div>
       </div>
@@ -46,13 +46,13 @@ export default function StepVideo({
 
   return (
     <div>
-      <p className="mb-2 text-sm text-zinc-500">이미지와 TTS를 합쳐 세로형 쇼츠 영상을 만듭니다. (3 크레딧)</p>
+      <p className="mb-2 text-sm text-zinc-500">Combine images and TTS into a vertical short-form video. (3 credits)</p>
       <button
         onClick={handleRender}
         disabled={loading}
         className="border border-zinc-600 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
       >
-        {loading ? '렌더링 중...' : '영상 합성'}
+        {loading ? 'Rendering...' : 'Render video'}
       </button>
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>

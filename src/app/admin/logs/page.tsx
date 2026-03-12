@@ -5,18 +5,18 @@ export default async function AdminLogsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">생성 로그</h1>
+      <h1 className="text-2xl font-bold text-white">Generation logs</h1>
       <div className="overflow-x-auto border border-zinc-800">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-800 bg-zinc-900">
-              <th className="px-4 py-3 text-left">일시</th>
-              <th className="px-4 py-3 text-left">유저</th>
-              <th className="px-4 py-3 text-left">프로젝트</th>
-              <th className="px-4 py-3 text-left">단계</th>
-              <th className="px-4 py-3 text-left">상태</th>
-              <th className="px-4 py-3 text-left">크레딧</th>
-              <th className="px-4 py-3 text-left">오류</th>
+              <th className="px-4 py-3 text-left">Time</th>
+              <th className="px-4 py-3 text-left">User</th>
+              <th className="px-4 py-3 text-left">Project</th>
+              <th className="px-4 py-3 text-left">Step</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Credits</th>
+              <th className="px-4 py-3 text-left">Error</th>
             </tr>
           </thead>
           <tbody>
