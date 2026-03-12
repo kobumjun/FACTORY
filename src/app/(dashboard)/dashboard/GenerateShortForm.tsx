@@ -13,12 +13,12 @@ import type { TemplateId } from '@/lib/constants';
 type Template = { readonly id: TemplateId; readonly name: string; readonly description: string };
 
 const PROGRESS_LABELS = {
-  script: 'Generating script...',
-  scenes: 'Splitting scenes...',
-  images: 'Generating images...',
-  tts: 'Generating voice...',
-  video: 'Rendering video...',
-  metadata: 'Generating metadata...',
+  script: 'Generating script (LLM)...',
+  scenes: 'Splitting script into scenes...',
+  images: 'Generating images for each scene...',
+  tts: 'Generating TTS audio for each scene...',
+  video: 'Rendering video in browser (ffmpeg.wasm)...',
+  metadata: 'Generating metadata for YouTube...',
 } as const;
 
 type StepKey = keyof typeof PROGRESS_LABELS;
@@ -43,44 +43,62 @@ export default function GenerateShortForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    console.log('[GenerateShort] Generate button clicked', { prompt: prompt.trim(), template });
     setError(null);
     setResult(null);
     setLoading(true);
 
+    console.log('[GenerateShort] Start project initialization');
     const start = await startShortGeneration(prompt.trim(), template);
     if (start.error) {
+      console.error('[GenerateShort] Failed to start project', start.error);
       setError(start.error);
       setLoading(false);
       return;
     }
     const projectId = start.data!.projectId;
+    console.log('[GenerateShort] Project initialized', { projectId });
 
     for (const step of steps) {
+      console.log('[GenerateShort] Starting step', step);
       setProgress(PROGRESS_LABELS[step]);
       let res: { error?: string; data?: unknown };
       switch (step) {
         case 'script':
+          console.log('[GenerateShort] Start script generation');
           res = await generateScript(projectId, { bundled: true });
+          console.log('[GenerateShort] Script generated');
           break;
         case 'scenes':
+          console.log('[GenerateShort] Start scene split');
           res = await splitScenes(projectId, { bundled: true });
+          console.log('[GenerateShort] Scenes generated');
           break;
         case 'images':
+          console.log('[GenerateShort] Start image generation');
           res = await generateImages(projectId, { bundled: true });
+          console.log('[GenerateShort] Images generated');
           break;
         case 'tts':
+          console.log('[GenerateShort] Start TTS generation');
           res = await generateTTS(projectId, { bundled: true });
+          console.log('[GenerateShort] TTS generated');
           break;
         case 'video':
+          console.log('[GenerateShort] Start browser video render');
           res = await renderVideoInBrowser(projectId);
+          console.log('[GenerateShort] Browser video render finished');
           break;
         case 'metadata':
+          console.log('[GenerateShort] Start metadata generation');
           res = await generateMetadata(projectId);
+          console.log('[GenerateShort] Metadata generated');
           break;
         default:
           res = {};
       }
       if (res.error) {
+        console.error('[GenerateShort] Step failed', { step, error: res.error });
         setError(res.error);
         setLoading(false);
         setProgress(null);

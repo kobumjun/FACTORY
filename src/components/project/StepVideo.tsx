@@ -15,12 +15,18 @@ export default function StepVideo({
   const videoUrl = (data as { videoUrl?: string })?.videoUrl;
 
   async function handleRender() {
+    console.log('[StepVideo] Render video button clicked', { projectId });
     setError(null);
     setLoading(true);
     const res = await renderVideoInBrowser(projectId);
     setLoading(false);
-    if ('error' in res && res.error) setError(res.error);
-    else if ('data' in res && res.data) window.location.reload();
+    if ('error' in res && res.error) {
+      console.error('[StepVideo] Browser render failed', res.error);
+      setError(res.error);
+    } else if ('data' in res && res.data) {
+      console.log('[StepVideo] Browser render succeeded, reloading page');
+      window.location.reload();
+    }
   }
 
   if (videoUrl) {

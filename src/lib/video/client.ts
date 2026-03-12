@@ -13,17 +13,22 @@ let ffmpegInstance: FFmpeg | null = null;
 
 async function ensureFFmpegLoaded(): Promise<FFmpeg> {
   if (!ffmpegInstance) {
+    console.log('[VideoClient] Creating FFmpeg instance');
     ffmpegInstance = new FFmpeg();
+    console.log('[VideoClient] Loading FFmpeg core/WASM');
     await ffmpegInstance.load();
+    console.log('[VideoClient] FFmpeg loaded');
   }
   return ffmpegInstance;
 }
 
 export async function renderVideoInBrowser(projectId: string): Promise<RenderResult> {
   try {
+    console.log('[VideoClient] renderVideoInBrowser called', { projectId });
     const supabase = createClient();
 
     // 1) 이미지 / TTS 단계에서 생성된 URL 가져오기
+    console.log('[VideoClient] Fetching image step data');
     const { data: imagesStep, error: imagesError } = await supabase
       .from('project_steps')
       .select('output_data')
@@ -31,8 +36,12 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
       .eq('step', 'images')
       .single();
 
-    if (imagesError) return { error: 'Failed to load images step.' };
+    if (imagesError) {
+      console.error('[VideoClient] Failed to load images step', imagesError);
+      return { error: 'Failed to load images step.' };
+    }
 
+    console.log('[VideoClient] Fetching TTS step data');
     const { data: ttsStep, error: ttsError } = await supabase
       .from('project_steps')
       .select('output_data')
@@ -40,12 +49,16 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
       .eq('step', 'tts')
       .single();
 
-    if (ttsError) return { error: 'Failed to load TTS step.' };
+    if (ttsError) {
+      console.error('[VideoClient] Failed to load TTS step', ttsError);
+      return { error: 'Failed to load TTS step.' };
+    }
 
     const imageUrls = (imagesStep?.output_data as { imageUrls?: string[] })?.imageUrls;
     const audioUrls = (ttsStep?.output_data as { audioUrls?: string[] })?.audioUrls;
 
     if (!Array.isArray(imageUrls) || !Array.isArray(audioUrls) || imageUrls.length === 0 || audioUrls.length === 0) {
+      console.error('[VideoClient] Invalid image/audio URLs', { imageUrls, audioUrls });
       return { error: 'Generate images and TTS first.' };
     }
 
@@ -54,9 +67,12 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
     const audioUrlsSliced = audioUrls.slice(0, capped);
 
     // 2) ffmpeg.wasm 로드
+    console.log('[VideoClient] Start ffmpeg load');
     const ffmpeg = await ensureFFmpegLoaded();
+    console.log('[VideoClient] ffmpeg ready');
 
     // 3) 입력 파일을 가상 FS에 기록
+    console.log('[VideoClient] Start writing files to ffmpeg FS', { scenes: capped });
     for (let i = 0; i < imageUrlsSliced.length; i++) {
       const imgName = `img-${i}.png`;
       const audName = `aud-${i}.mp3`;
@@ -106,14 +122,18 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
       outputName,
     ];
 
+    console.log('[VideoClient] Start ffmpeg exec', { args });
     await ffmpeg.exec(args);
+    console.log('[VideoClient] ffmpeg exec finished');
 
+    console.log('[VideoClient] Start blob creation');
     const data = (await ffmpeg.readFile(outputName)) as Uint8Array;
     const safeUint8 = new Uint8Array(data);
     const blob = new Blob([safeUint8], { type: 'video/mp4' });
 
     // 4) Supabase Storage 업로드
     const filePath = `${projectId}/videos/final.mp4`;
+    console.log('[VideoClient] Start Supabase upload', { filePath });
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('projects')
       .upload(filePath, blob, {
@@ -122,11 +142,13 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
       });
 
     if (uploadError || !uploadData) {
+      console.error('[VideoClient] Upload failed', uploadError);
       return { error: 'Failed to upload video.' };
     }
 
     const { data: publicUrlData } = supabase.storage.from('projects').getPublicUrl(uploadData.path);
     const videoUrl = publicUrlData.publicUrl;
+    console.log('[VideoClient] Upload finished', { videoUrl });
 
     // 5) project_steps에 video URL 저장 (DB 구조 유지)
     await supabase
@@ -138,8 +160,10 @@ export async function renderVideoInBrowser(projectId: string): Promise<RenderRes
       .eq('project_id', projectId)
       .eq('step', 'video');
 
+    console.log('[VideoClient] Final success', { videoUrl });
     return { data: { videoUrl } };
   } catch (e) {
+    console.error('[VideoClient] Video render failed', e);
     const message = e instanceof Error ? e.message : 'Video render failed.';
     return { error: message };
   }
